@@ -181,4 +181,64 @@
     right: 0;
     border-right-color: var(--border);
   }
+
+/* =========================================================
+   ESTILOS PARA EL MODAL FLOTANTE (PANTALLA COMPLETA)
+   =========================================================
+*/
+
+/* 1. Fondo Oscuro (Overlay) */
+.modal-overlay {
+  position: fixed; /* Fijo sobre toda la pantalla */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); /* Negro suave y transparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Asegura que esté por encima de todo */
+  cursor: pointer; /* Indicar que al clicar fuera, se cierra */
+}
+
+/* 2. Contenedor del Contenido */
+.modal-content-wrapper {
+  position: relative;
+  max-width: 90%; /* Ajuste para móviles */
+  max-height: 90vh; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 3. La Imagen Full Completa */
+.modal-full-image {
+  max-width: 100%;
+  max-height: 85vh; /* Se detiene antes del borde superior */
+  object-fit: contain; /* Ajusta la imagen sin deformar ni recortar */
+  border-radius: 12px;
+  border: 4px solid #fff; /* Pequeño borde estético */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Sombra elegante */
+}
+
+/* 4. Botón de Cerrar ('✕') */
+.modal-close-button {
+  position: absolute;
+  top: -40px; /* Colocarlo fuera de la imagen, arriba */
+  right: -10px; /* Un poco a la derecha */
+  background: none;
+  border: none;
+  color: #fff; /* Letra blanca */
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px;
+  transition: transform 0.2s ease;
+}
+
+.modal-close-button:hover {
+  transform: scale(1.1); /* Efecto de crecimiento al pasar el mouse */
+}
+
 }

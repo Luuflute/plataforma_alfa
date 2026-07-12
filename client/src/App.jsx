@@ -15,6 +15,9 @@ function App() {
   const [listaNoticias, setListaNoticias] = useState([]);
   const [cargandoSecciones, setCargandoSecciones] = useState(false);
 
+  // CONTROL DE FLYER EXPANDIDO (ZOOM)
+  const [imagenExpandida, setImagenExpandida] = useState(null);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSesion(session);
@@ -71,70 +74,82 @@ function App() {
   }
 
   return (
-    <div style={{ width: '100vw', maxWidth: '100%', minHeight: '100vh', margin: '0', padding: '20px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
+    <div className="w-full max-w-full min-h-screen m-0 p-4 md:p-6 font-sans bg-gray-50 box-border overflow-x-hidden">
       
-      {/* BARRA DE NAVEGACIÓN PARTIMUSIC */}
-      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2c3e50', padding: '12px 30px', borderRadius: '12px', color: 'white', marginBottom: '25px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+      {/* 🎯 BARRA DE NAVEGACIÓN PARTIMUSIC RESPONSIVA CON TAILWIND */}
+      <nav className="flex flex-col lg:flex-row justify-between items-center bg-[#2c3e50] p-4 px-6 md:px-8 rounded-xl text-white mb-6 gap-4 shadow-sm">
         
-        <div onClick={() => setPantallaActual('partituras')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-          <span style={{ fontSize: '1.6em' }}>🎼</span>
-          <h2 style={{ margin: 0, fontSize: '1.3em', letterSpacing: '0.8px', fontWeight: 'bold' }}>PARTIMUSIC</h2>
+        {/* LOGO */}
+        <div onClick={() => setPantallaActual('partituras')} className="flex items-center gap-2.5 cursor-pointer">
+          <span className="text-2xl">🎼</span>
+          <h2 className="m-0 text-xl tracking-wide font-bold">PARTIMUSIC</h2>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '35px' }}>
+        {/* MENÚ CENTRAL */}
+        <div className="flex flex-wrap items-center justify-center gap-5 md:gap-9">
           {['partituras', 'cursos', 'noticias'].map((seccion) => (
             <span 
               key={seccion}
               onClick={() => setPantallaActual(seccion)}
-              style={{ cursor: 'pointer', fontSize: '15px', fontWeight: pantallaActual === seccion ? 'bold' : 'normal', color: pantallaActual === seccion ? '#2ecc71' : '#ecf0f1', textTransform: 'capitalize' }}
+              className={`cursor-pointer text-[15px] capitalize transition-colors duration-200 ${
+                pantallaActual === seccion ? 'text-[#2ecc71] font-bold' : 'text-[#ecf0f1] hover:text-[#2ecc71]'
+              }`}
             >
               {seccion}
             </span>
           ))}
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* ACCIONES DE USUARIO */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
           {rolUsuario === 'profesor' && (
             <button 
               onClick={() => setPantallaActual('subir')}
-              style={{ backgroundColor: pantallaActual === 'subir' ? '#27ae60' : '#2ecc71', color: 'white', border: 'none', padding: '9px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+              className={`text-white border-none padding px-4 py-2 rounded-lg cursor-pointer font-bold text-xs transition-colors duration-200 ${
+                pantallaActual === 'subir' ? 'bg-[#27ae60]' : 'bg-[#2ecc71] hover:bg-[#27ae60]'
+              }`}
             >
               ➕ Subir Material / Anuncio
             </button>
           )}
-          <span style={{ backgroundColor: '#34495e', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+          <span className="bg-[#34495e] px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">
             👤 {rolUsuario}
           </span>
-          <button onClick={cerrarSesion} style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
+          <button onClick={cerrarSesion} className="bg-[#e74c3c] hover:bg-[#c0392b] text-white border-none px-3.5 py-2 rounded-lg cursor-pointer font-bold text-xs transition-colors">
             Salir
           </button>
         </div>
       </nav>
 
       {/* CONTENIDO PRINCIPAL FLUIDO */}
-      <main style={{ width: '100%' }}>
+      <main className="w-full">
         
         {/* SECCIÓN 1: PARTITURAS */}
         {pantallaActual === 'partituras' && <Library />}
 
-        {/* SECCIÓN 2: CURSOS (Dinamizado con Tarjetas y Flyers) */}
+        {/* SECCIÓN 2: CURSOS */}
         {pantallaActual === 'cursos' && (
-          <div style={{ textAlign: 'left', width: '100%' }}>
-            <h2 style={{ color: '#2c3e50', borderBottom: '2px solid #2ecc71', paddingBottom: '10px', marginTop: 0, fontSize: '1.5em' }}>Academia de Cursos y Talleres</h2>
-            {cargandoSecciones ? <p>Cargando cartelera de cursos...</p> : listaCursos.length === 0 ? (
-              <p style={{ color: '#7f8c8d', marginTop: '20px' }}>No hay cursos publicados activos en este momento.</p>
+          <div className="text-left w-full">
+            <h2 className="text-[#2c3e50] border-b-2 border-[#2ecc71] pb-2 mt-0 text-xl font-bold">Academia de Cursos y Talleres</h2>
+            {cargandoSecciones ? <p className="mt-4 text-gray-500">Cargando cartelera de cursos...</p> : listaCursos.length === 0 ? (
+              <p className="text-gray-500 mt-5">No hay cursos publicados activos en este momento.</p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px', marginTop: '25px' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 w-full">
                 {listaCursos.map(curso => (
-                  <div key={curso.id} style={{ border: '1px solid #e1e8ed', borderRadius: '12px', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <div key={curso.id} className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col">
                     {curso.flyer_url ? (
-                      <img src={curso.flyer_url} alt="Flyer Curso" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                      <img 
+                        src={curso.flyer_url} 
+                        alt="Flyer Curso" 
+                        onClick={() => setImagenExpandida(curso.flyer_url)} 
+                        className="w-full h-[180px] object-cover cursor-zoom-in hover:opacity-95 transition-opacity" 
+                      />
                     ) : (
-                      <div style={{ height: '180px', backgroundColor: '#e8f4f8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2980b9', fontSize: '3em' }}>🎓</div>
+                      <div className="h-[180px] bg-sky-50 flex items-center justify-center text-[#2980b9] text-5xl">🎓</div>
                     )}
-                    <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <h3 style={{ margin: '0 0 10px 0', color: '#2c3e50', fontSize: '1.25em' }}>{curso.titulo}</h3>
-                      <p style={{ color: '#555', fontSize: '14px', lineHeight: '1.5', margin: 0, whiteSpace: 'pre-line' }}>{curso.descripcion}</p>
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="m-0 mb-2 text-[#2c3e50] text-lg font-bold">{curso.titulo}</h3>
+                      <p className="text-gray-600 text-sm lineHeight-[1.5] m-0 whitespace-pre-line">{curso.descripcion}</p>
                     </div>
                   </div>
                 ))}
@@ -143,24 +158,29 @@ function App() {
           </div>
         )}
 
-        {/* SECCIÓN 3: NOTICIAS (Dinamizado con Tarjetas y Flyers) */}
+        {/* SECCIÓN 3: NOTICIAS */}
         {pantallaActual === 'noticias' && (
-          <div style={{ textAlign: 'left', width: '100%' }}>
-            <h2 style={{ color: '#2c3e50', borderBottom: '2px solid #2ecc71', paddingBottom: '10px', marginTop: 0, fontSize: '1.5em' }}>Cartelera Informativa Escolar</h2>
-            {cargandoSecciones ? <p>Cargando cartelera informativa...</p> : listaNoticias.length === 0 ? (
-              <p style={{ color: '#7f8c8d', marginTop: '20px' }}>No hay comunicados oficiales recientes.</p>
+          <div className="text-left w-full">
+            <h2 className="text-[#2c3e50] border-b-2 border-[#2ecc71] pb-2 mt-0 text-xl font-bold">Cartelera Informativa Escolar</h2>
+            {cargandoSecciones ? <p className="mt-4 text-gray-500">Cargando cartelera informativa...</p> : listaNoticias.length === 0 ? (
+              <p className="text-gray-500 mt-5">No hay comunicados oficiales recientes.</p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px', marginTop: '25px' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 w-full">
                 {listaNoticias.map(noticia => (
-                  <div key={noticia.id} style={{ border: '1px solid #e1e8ed', borderRadius: '12px', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <div key={noticia.id} className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col">
                     {noticia.flyer_url ? (
-                      <img src={noticia.flyer_url} alt="Flyer Noticia" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                      <img 
+                        src={noticia.flyer_url} 
+                        alt="Flyer Noticia" 
+                        onClick={() => setImagenExpandida(noticia.flyer_url)} 
+                        className="w-full h-[180px] object-cover cursor-zoom-in hover:opacity-95 transition-opacity" 
+                      />
                     ) : (
-                      <div style={{ height: '180px', backgroundColor: '#fcf3cf', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f39c12', fontSize: '3em' }}>📰</div>
+                      <div className="h-[180px] bg-amber-50 flex items-center justify-center text-[#f39c12] text-5xl">📰</div>
                     )}
-                    <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <h3 style={{ margin: '0 0 10px 0', color: '#2c3e50', fontSize: '1.25em' }}>{noticia.titulo}</h3>
-                      <p style={{ color: '#555', fontSize: '14px', lineHeight: '1.5', margin: 0, whiteSpace: 'pre-line' }}>{noticia.descripcion}</p>
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="m-0 mb-2 text-[#2c3e50] text-lg font-bold">{noticia.titulo}</h3>
+                      <p className="text-gray-600 text-sm lineHeight-[1.5] m-0 whitespace-pre-line">{noticia.descripcion}</p>
                     </div>
                   </div>
                 ))}
@@ -171,8 +191,11 @@ function App() {
 
         {/* SECCIÓN 4: SUBIDA MULTIFUNCIONAL */}
         {pantallaActual === 'subir' && rolUsuario === 'profesor' && (
-          <div style={{ width: '100%' }}>
-            <button onClick={() => setPantallaActual('partituras')} style={{ backgroundColor: '#f8f9fa', color: '#2c3e50', border: '1px solid #ccd1d1', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px' }}>
+          <div className="w-full">
+            <button 
+              onClick={() => setPantallaActual('partituras')} 
+              className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2 rounded-lg cursor-pointer font-bold mb-5 flex items-center gap-1.5 text-xs transition-colors"
+            >
               ⬅️ Volver a Explorar
             </button>
             <UploadForm />
@@ -180,6 +203,29 @@ function App() {
         )}
 
       </main>
+
+      {/* MODAL FLOTANTE DEL ZOOM DEL FLYER */}
+      {imagenExpandida && (
+        <div 
+          className="modal-overlay" 
+          onClick={() => setImagenExpandida(null)} 
+        >
+          <div className="modal-content-wrapper" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="modal-close-button" 
+              onClick={() => setImagenExpandida(null)}
+            >
+              ✕
+            </button>
+            <img 
+              src={imagenExpandida} 
+              alt="Flyer Expandido" 
+              className="modal-full-image" 
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

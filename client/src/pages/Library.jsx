@@ -9,10 +9,14 @@ const Library = () => {
   const [listaCatedrasFiltro, setListaCatedrasFiltro] = useState(['Todos']);
   const [filtroCatedra, setFiltroCatedra] = useState('Todos');
   const [filtroTipo, setFiltroTipo] = useState('Todos');
+  
+  // 🔄 NUEVO ESTADO: Guarda los tipos de material dinámicos traídos de la BD
+  const [listaTipos, setListaTipos] = useState(['Todos']);
 
   useEffect(() => {
     const cargarTodoElContenido = async () => {
       try {
+        // 1. Obtener todas las partituras
         const { data: partiturasData, error: errPartituras } = await supabase
           .from('partituras')
           .select('*');
@@ -20,8 +24,15 @@ const Library = () => {
         if (!errPartituras && partiturasData) {
           setTodosLosMateriales(partiturasData);
           setMaterialesFiltrados(partiturasData);
+
+          // 🔄 PROCESAMIENTO DINÁMICO DE "TIPO DE MATERIAL":
+          const tiposUnicos = [...new Set(partiturasData.map(item => item.tipo_documento).filter(Boolean))];
+          
+          // Guardamos 'Todos' al principio y acoplamos las categorías reales de la BD
+          setListaTipos(['Todos', ...tiposUnicos]);
         }
 
+        // 2. Obtener todas las cátedras configuradas
         const { data: catedrasData, error: errCatedras } = await supabase
           .from('catedras')
           .select('nombre')
@@ -41,6 +52,7 @@ const Library = () => {
     cargarTodoElContenido();
   }, []);
 
+  // --- FILTRADO EN TIEMPO REAL ---
   useEffect(() => {
     let resultado = todosLosMateriales;
 
@@ -64,14 +76,19 @@ const Library = () => {
   }
 
   return (
-    <div style={{ display: 'flex', gap: '25px', marginTop: '10px', alignItems: 'flex-start', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
+    /* 🎯 CAMBIO 1: Contenedor principal adaptable con Tailwind 
+       flex-col (móvil, vertical) -> md:flex-row (pantallas grandes, horizontal) */
+    <div className="flex flex-col md:flex-row gap-6 mt-2.5 items-start font-sans w-full box-border p-4 md:p-0">
       
       {/* COLUMNA IZQUIERDA: FILTROS */}
-      <aside style={{ width: '260px', minWidth: '260px', backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '12px', border: '1px solid #e9ecef', textAlign: 'left', boxSizing: 'border-box' }}>
+      {/* 🎯 CAMBIO 2: Ancho responsivo con Tailwind 
+         w-full (móvil ocupa el 100%) -> md:w-[260px] (ancho fijo en PC) */}
+      <aside className="w-full md:w-[260px] md:min-w-[260px] bg-[#f8f9fa] p-5 rounded-xl border border-[#e9ecef] text-left box-border">
         <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50', fontSize: '1.1em', borderBottom: '2px solid #2ecc71', paddingBottom: '10px' }}>
           🔍 Filtros
         </h3>
 
+        {/* FILTRO 1: INSTRUMENTO / CÁTEDRA */}
         <div style={{ marginBottom: '25px' }}>
           <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85em', color: '#7f8c8d', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Instrumento / Cátedra
@@ -92,12 +109,13 @@ const Library = () => {
           </div>
         </div>
 
+        {/* FILTRO 2: TIPO DE MATERIAL */}
         <div style={{ marginBottom: '15px' }}>
           <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85em', color: '#7f8c8d', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Tipo de Material
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {['Todos', 'Partituras Individuales', 'Partes Orquestales', 'Libros de Estudio'].map((tipo) => (
+            {listaTipos.map((tipo) => (
               <label key={tipo} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', color: '#333' }}>
                 <input 
                   type="radio" 
@@ -113,8 +131,9 @@ const Library = () => {
         </div>
       </aside>
 
-      {/* SECCIÓN CENTRAL: CRECE DINÁMICAMENTE */}
-      <section style={{ flex: 1, textAlign: 'left', boxSizing: 'border-box' }}>
+      {/* SECCIÓN CENTRAL: CONTENIDO FLUÍDO */}
+      {/* 🎯 CAMBIO 3: Añadimos ancho completo e indicador flex-1 */}
+      <section className="flex-1 text-left box-border w-full">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
           <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '1.4em' }}>Lo mejor de PartiMusic</h2>
           <span style={{ fontSize: '13px', backgroundColor: '#e8f5e9', color: '#2ecc71', padding: '4px 12px', borderRadius: '15px', fontWeight: 'bold' }}>
@@ -127,8 +146,12 @@ const Library = () => {
             <p style={{ color: '#95a5a6', fontSize: '1.1em', margin: 0 }}>No hay materiales pedagógicos que coincidan con los filtros.</p>
           </div>
         ) : (
-          /* REJILLA MEJORADA: Ajustada a minmax(230px) para exprimir todo el ancho horizontal */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '20px', width: '100%' }}>
+          /* 🎯 CAMBIO 4: CUADRÍCULA 100% RESPONSIVA CON TAILWIND 
+             grid-cols-1 (1 tarjeta por fila en móvil) 
+             sm:grid-cols-2 (2 en tablets) 
+             lg:grid-cols-3 (3 en laptops) 
+             xl:grid-cols-4 (4 en monitores gigantes) */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full box-border">
             {materialesFiltrados.map((item) => (
               <div 
                 key={item.id} 
