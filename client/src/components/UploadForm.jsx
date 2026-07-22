@@ -97,11 +97,14 @@ const UploadForm = () => {
         if (archivoFlyer) {
           urlFlyer = await subirAlStorage(archivoFlyer, 'flyers');
         }
+        const datosAPublicar = queSubir === 'curso' 
+          ? { titulo, descripcion, flyer_url: urlFlyer }
+          : { titulo, noticias: descripcion, flyer_url: urlFlyer };
 
-        // Insertamos dinámicamente en la tabla correspondinte ('cursos' o 'noticias')
-        const { error } = await supabase.from(queSubir === 'curso' ? 'cursos' : 'noticias').insert([
-          { titulo, descripcion, flyer_url: urlFlyer }
-        ]);
+        const { error } = await supabase
+          .from(queSubir === 'curso' ? 'cursos' : 'noticias')
+          .insert([datosAPublicar]);
+
         if (error) throw error;
         alert(`¡Anuncio publicado con éxito en la sección de ${queSubir === 'curso' ? 'Cursos' : 'Noticias'}!`);
       }

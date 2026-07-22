@@ -124,8 +124,8 @@ function App() {
       {/* CONTENIDO PRINCIPAL FLUIDO */}
       <main className="w-full">
         
-        {/* SECCIÓN 1: PARTITURAS */}
-        {pantallaActual === 'partituras' && <Library />}
+        {/* SECCIÓN 1: PARTITURAS (🎯 Conectado el rolUsuario) */}
+        {pantallaActual === 'partituras' && <Library rolUsuario={rolUsuario} />}
 
         {/* SECCIÓN 2: CURSOS */}
         {pantallaActual === 'cursos' && (
@@ -180,7 +180,8 @@ function App() {
                     )}
                     <div className="p-5 flex-1 flex flex-col">
                       <h3 className="m-0 mb-2 text-[#2c3e50] text-lg font-bold">{noticia.titulo}</h3>
-                      <p className="text-gray-600 text-sm lineHeight-[1.5] m-0 whitespace-pre-line">{noticia.descripcion}</p>
+                      {/* 🎯 CORRECCIÓN AQUÍ: Cambiado de noticia.descripcion a noticia.noticias */}
+                      <p className="text-gray-600 text-sm leading-[1.5] m-0 whitespace-pre-line">{noticia.noticias}</p>
                     </div>
                   </div>
                 ))}

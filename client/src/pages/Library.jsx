@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase/config'; 
 
-const Library = () => {
+// 🎯 Recibimos 'rolUsuario' como prop desde App.jsx
+const Library = ({ rolUsuario }) => {
   const [todosLosMateriales, setTodosLosMateriales] = useState([]); 
   const [materialesFiltrados, setMaterialesFiltrados] = useState([]); 
   const [cargando, setCargando] = useState(true);
@@ -67,6 +68,41 @@ const Library = () => {
     setMaterialesFiltrados(resultado);
   }, [filtroCatedra, filtroTipo, todosLosMateriales]);
 
+  // 🗑️ FUNCIÓN ASÍNCRONA PARA ELIMINAR MATERIAL (BD + STORAGE)
+  const manejarEliminar = async (item) => {
+    const confirmar = window.confirm(`¿Estás seguro de que deseas eliminar "${item.titulo}"? Esta acción borrará los archivos permanentemente.`);
+    if (!confirmar) return;
+
+    try {
+      // 1. Limpiar los archivos físicos del Storage de Supabase ('materiales')
+      if (item.archivo_url) {
+        const nombreArchivo = item.archivo_url.split('/').pop();
+        await supabase.storage.from('materiales').remove([nombreArchivo]);
+      }
+      
+      if (item.audio_url) {
+        const nombreAudio = item.audio_url.split('/').pop();
+        await supabase.storage.from('materiales').remove([nombreAudio]);
+      }
+
+      // 2. Borrar la fila de la tabla en la BD
+      const { error } = await supabase
+        .from('partituras')
+        .delete()
+        .eq('id', item.id);
+
+      if (error) throw error;
+
+      // 3. Actualizar la UI inmediatamente eliminándola de los arreglos locales
+      setTodosLosMateriales(prev => prev.filter(p => p.id !== item.id));
+      alert('Material eliminado con éxito.');
+
+    } catch (error) {
+      console.error('Error al intentar eliminar:', error);
+      alert('No se pudo eliminar el material.');
+    }
+  };
+
   if (cargando) {
     return (
       <div style={{ textAlign: 'center', padding: '50px', fontFamily: 'sans-serif' }}>
@@ -76,13 +112,9 @@ const Library = () => {
   }
 
   return (
-    /* 🎯 CAMBIO 1: Contenedor principal adaptable con Tailwind 
-       flex-col (móvil, vertical) -> md:flex-row (pantallas grandes, horizontal) */
     <div className="flex flex-col md:flex-row gap-6 mt-2.5 items-start font-sans w-full box-border p-4 md:p-0">
       
       {/* COLUMNA IZQUIERDA: FILTROS */}
-      {/* 🎯 CAMBIO 2: Ancho responsivo con Tailwind 
-         w-full (móvil ocupa el 100%) -> md:w-[260px] (ancho fijo en PC) */}
       <aside className="w-full md:w-[260px] md:min-w-[260px] bg-[#f8f9fa] p-5 rounded-xl border border-[#e9ecef] text-left box-border">
         <h3 style={{ margin: '0 0 20px 0', color: '#2c3e50', fontSize: '1.1em', borderBottom: '2px solid #2ecc71', paddingBottom: '10px' }}>
           🔍 Filtros
@@ -132,7 +164,6 @@ const Library = () => {
       </aside>
 
       {/* SECCIÓN CENTRAL: CONTENIDO FLUÍDO */}
-      {/* 🎯 CAMBIO 3: Añadimos ancho completo e indicador flex-1 */}
       <section className="flex-1 text-left box-border w-full">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
           <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '1.4em' }}>Lo mejor de PartiMusic</h2>
@@ -146,11 +177,6 @@ const Library = () => {
             <p style={{ color: '#95a5a6', fontSize: '1.1em', margin: 0 }}>No hay materiales pedagógicos que coincidan con los filtros.</p>
           </div>
         ) : (
-          /* 🎯 CAMBIO 4: CUADRÍCULA 100% RESPONSIVA CON TAILWIND 
-             grid-cols-1 (1 tarjeta por fila en móvil) 
-             sm:grid-cols-2 (2 en tablets) 
-             lg:grid-cols-3 (3 en laptops) 
-             xl:grid-cols-4 (4 en monitores gigantes) */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full box-border">
             {materialesFiltrados.map((item) => (
               <div 
@@ -205,6 +231,17 @@ const Library = () => {
                     <audio controls src={item.audio_url} style={{ width: '100%', height: '28px' }} />
                   </div>
                 )}
+
+                {/* 🎯 BOTÓN ROJO DE ELIMINACIÓN DINÁMICO */}
+                {rolUsuario === 'profesor' && (
+                  <button
+                    onClick={() => manejarEliminar(item)}
+                    className="w-full mt-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 py-2 px-3 rounded-lg text-xs font-bold transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    🗑️ Eliminar Material
+                  </button>
+                )}
+
               </div>
             ))}
           </div>
